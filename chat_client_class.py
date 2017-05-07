@@ -11,7 +11,7 @@ class Client:
     def __init__(self):
         self.peer = ''
         self.console_input = []
-        self.state = S_OFFLINE
+        self.state = S_MENU
         self.system_msg = ''
         self.local_msg = ''
         self.peer_msg = ''        
