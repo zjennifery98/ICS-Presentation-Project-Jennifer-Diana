@@ -8,7 +8,7 @@ from chat_utils import *
 
 class ClientSM:
     def __init__(self, s):
-        self.state = S_OFFLINE
+        self.state = S_MENU
         self.peer = ''
         self.me = ''
         self.out_msg = ''
@@ -26,7 +26,7 @@ class ClientSM:
     def get_myname(self):
         return self.me
         
-    def connect_to(self, peer):
+    """def connect_to(self, peer):
         msg = M_CONNECT + peer
         mysend(self.s, msg)
         response = myrecv(self.s)
@@ -47,6 +47,7 @@ class ClientSM:
         mysend(self.s, msg)
         self.out_msg += 'You are disconnected from ' + self.peer + '\n'
         self.peer = ''
+    """
 
     def proc(self, my_msg, peer_code, peer_msg):
         self.out_msg = ''
@@ -55,13 +56,13 @@ class ClientSM:
 # And, of course, if you are so bored, just go
 # This is event handling instate "S_LOGGEDIN"
 #==============================================================================
-        if self.state == S_LOGGEDIN:
+        if self.state == S_PLAYING:
             # todo: can't deal with multiple lines yet
             if len(my_msg) > 0:
-                
+                # 0507 15:00 改到了这里
                 if my_msg == 'q':
                     self.out_msg += 'See you next time!\n'
-                    self.state = S_OFFLINE
+                    self.state = S_MENU
                     
                 elif my_msg == 'time':
                     mysend(self.s, M_TIME)
