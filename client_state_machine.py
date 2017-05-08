@@ -56,36 +56,41 @@ class ClientSM:
 # And, of course, if you are so bored, just go
 # This is event handling instate "S_LOGGEDIN"
 #==============================================================================
-        if self.state == S_PLAYING:
+        if self.state == S_MENU:
             # todo: can't deal with multiple lines yet
             if len(my_msg) > 0:
-                # 0507 15:00 改到了这里
+                
                 if my_msg == 'q':
                     self.out_msg += 'See you next time!\n'
-                    self.state = S_MENU
+                    self.state = S_QUIT
                     
-                elif my_msg == 'time':
-                    mysend(self.s, M_TIME)
-                    time_in = myrecv(self.s)
-                    self.out_msg += "Time is: " + time_in
+                elif my_msg == 'score':
+                    mysend(self.s, M_SCORE)
+                    score = myrecv(self.s)
+                    self.out_msg += 'Your current score is:' + score
                             
-                elif my_msg == 'who':
-                    mysend(self.s, M_LIST)
+                elif my_msg == 'c':
+                    """mysend(self.s, M_LIST)
                     logged_in = myrecv(self.s)
-                    self.out_msg += 'Here are all the users in the system:\n'
-                    self.out_msg += logged_in
+                    self.out_msg += 'Here are all the users in the system:\n'"""
+                    self.state = S_CREATING
+                    self.out_msg += 'You are now creating puzzles! \n'
+                    
+                elif my_msg == 'v':
+                    mysend(self.s, M_VIEW)
+                    puzzle_lst = myrecv(self.s)
+                    self.out_msg += 'The existing games are: \n'
+                    self.out_msg += puzzle_lst
                             
-                elif my_msg[0] == 'c':
-                    peer = my_msg[1:]
-                    peer = peer.strip()
-                    if self.connect_to(peer) == True:
-                        self.state = S_CHATTING
-                        self.out_msg += 'Connect to ' + peer + '. Chat away!\n\n'
-                        self.out_msg += '-----------------------------------\n'
+                elif my_msg[0] == 'p':
+                    puzzle_num = my_msg[1]
+                    if self.choose_puzzle(puzzle_num) == True:
+                        # 要写一下self.choose_puzzle(puzzle_num)的各种做法
+                        self.state = S_PLAYING
                     else:
-                        self.out_msg += 'Connection unsuccessful\n'
+                        self.out_msg += 'Wrong puzzle number\n'
                         
-                elif my_msg[0] == '?':
+                """elif my_msg[0] == '?':
                     term = my_msg[1:].strip()
                     mysend(self.s, M_SEARCH + term)
                     search_rslt = myrecv(self.s)[1:].strip()
@@ -101,20 +106,20 @@ class ClientSM:
                     if (len(poem) > 0):
                         self.out_msg += poem + '\n\n'
                     else:
-                        self.out_msg += 'Sonnet ' + poem_idx + ' not found\n\n'
+                        self.out_msg += 'Sonnet ' + poem_idx + ' not found\n\n'"""
 
                 else:
                     self.out_msg += menu
                     
-            if len(peer_msg) > 0:
+            """if len(peer_msg) > 0:
                 if peer_code == M_CONNECT:
                     self.peer = peer_msg
                     self.out_msg += 'Request from ' + self.peer + '\n'
                     self.out_msg += 'You are connected with ' + self.peer 
                     self.out_msg += '. Chat away!\n\n'
                     self.out_msg += '------------------------------------\n'
-                    self.state = S_CHATTING
-                    
+                    self.state = S_CHATTING"""
+                #  0508 23：45 改到这里 下面的还没改
 #==============================================================================
 # Start chatting, 'bye' for quit
 # This is event handling instate "S_CHATTING"
