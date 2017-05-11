@@ -100,11 +100,11 @@ class Group:
 
 def main():
     g = Group()
-    g.join('a')
-    g.join('b')
-    g.list_all()
-    g.connect('a', 'b')
-    g.list_all()
-    print(g.list_me('b'))
+    #g.join('a')
+    #g.join('b')
+    #g.list_all()
+    #g.connect('a', 'b')
+    #g.list_all()
+    #print(g.list_me('b'))
     
 main()

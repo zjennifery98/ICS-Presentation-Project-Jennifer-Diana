@@ -4,6 +4,7 @@ import select
 import sys
 import string
 import indexer
+import random
 import pickle as pkl
 from chat_utils import *
 import chat_group as grp
@@ -26,6 +27,8 @@ class Server:
         self.sonnet_f = open('AllSonnets.txt.idx', 'rb')
         self.sonnet = pkl.load(self.sonnet_f)
         self.sonnet_f.close()
+        # This one awaits further amendment, since it assumes that for one time there can only exist one puzzle
+        self.puzzle_key = 0
         
     def new_client(self, sock):
         #add to all sockets and to new clients
@@ -127,13 +130,24 @@ class Server:
 #==============================================================================
 #retrieve a sonnet
 #==============================================================================
-            elif code == M_POEM:
-                poem_indx = int(msg[1:])
+            elif code == M_SET:
+            	self.puzzle_key = string(random.randint(0,99))
+            	mysend(from_sock, self.puzzle_key)
+            
+            elif code == M_GUESS:
+                #a = random.randint(0,99)
+                number = msg[1:].strip()
                 from_name = self.logged_sock2name[from_sock]
-                print(from_name + ' asks for ', poem_indx)
-                poem = self.sonnet.get_sect(poem_indx)
-                print('here:\n', poem)
-                mysend(from_sock, M_POEM + poem)
+                print(from_name + ' guesses:', number)
+                if int(number) > self.puzzle_key:
+                    back = '0'
+                elif int(number) < self.puzzle_key:
+                    back = '1'
+                elif int(number) == self.puzzle_key:
+                    back = '2'
+                #print('here:\n', back)
+                mysend(from_sock, back)
+                
 #==============================================================================
 #time
 #==============================================================================
@@ -171,9 +185,15 @@ class Server:
             #client died unexpectedly
             self.logout(from_sock)   
 
+
+
+        
+            
+
 #==============================================================================
 # main loop, loops *forever*
 #==============================================================================
+
     def run(self):
         print ('starting server...')
         while(1):
