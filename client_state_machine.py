@@ -101,6 +101,30 @@ class ClientSM:
                         self.out_msg += poem + '\n\n'
                     else:
                         self.out_msg += 'Sonnet ' + poem_idx + ' not found\n\n'
+                
+                elif my_msg[0] == "g":
+                    state1 = False
+                    answer = input("what is your number?\n")
+                    msg = M_GUESS + answer.strip()
+                    mysend(self.s, msg)
+                    response = self.recv()
+                    while (state1 == False):
+                        response = self.recv()
+                        if response == 0:
+                            self.out_msg += "too big"
+                        elif response == 1:
+                            self.out_msg += "too small"
+                        elif response == 2:
+                            self.put_msg += "yes"
+                            state1 = True
+                        #state = S_GUESS
+                        
+                    
+                    
+                    
+                    
+                    
+                
 
                 else:
                     self.out_msg += menu

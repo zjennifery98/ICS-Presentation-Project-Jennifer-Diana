@@ -4,6 +4,7 @@ import select
 import sys
 import string
 import indexer
+import random
 import pickle as pkl
 from chat_utils import *
 import chat_group as grp
@@ -127,13 +128,20 @@ class Server:
 #==============================================================================
 #retrieve a sonnet
 #==============================================================================
-            elif code == M_POEM:
-                poem_indx = int(msg[1:])
+            elif code == M_GUESS:
+                a = random.randint(0,99)
+                number = msg[1:]
+                number.strip()
                 from_name = self.logged_sock2name[from_sock]
-                print(from_name + ' asks for ', poem_indx)
-                poem = self.sonnet.get_sect(poem_indx)
-                print('here:\n', poem)
-                mysend(from_sock, M_POEM + poem)
+                print(from_name + 'guess', number)
+                if int(number) > a:
+                    back = '0'
+                elif int(number)< a:
+                    back = '1'
+                elif int(number) == a:
+                    back = '2'
+                print('here:\n', back)
+                mysend(from_sock, M_GUESS + back)
 #==============================================================================
 #time
 #==============================================================================
@@ -171,9 +179,15 @@ class Server:
             #client died unexpectedly
             self.logout(from_sock)   
 
+
+
+        
+            
+
 #==============================================================================
 # main loop, loops *forever*
 #==============================================================================
+
     def run(self):
         print ('starting server...')
         while(1):

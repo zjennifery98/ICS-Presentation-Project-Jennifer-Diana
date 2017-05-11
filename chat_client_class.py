@@ -2,6 +2,7 @@ import time
 import socket
 import select
 import sys
+import random
 from chat_utils import *
 import client_state_machine as csm
 
@@ -86,6 +87,7 @@ class Client:
                 return False
         else:               # fix: dup is only one of the reasons
            return(False)
+    
 
 
     def read_input(self):
