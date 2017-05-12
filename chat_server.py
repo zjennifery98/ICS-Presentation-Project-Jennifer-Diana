@@ -28,7 +28,7 @@ class Server:
         self.sonnet = pkl.load(self.sonnet_f)
         self.sonnet_f.close()
         # This one awaits further amendment, since it assumes that for one time there can only exist one puzzle
-        self.puzzle_key = 0
+        self.puzzle_key = 32
         
     def new_client(self, sock):
         #add to all sockets and to new clients
@@ -131,21 +131,25 @@ class Server:
 #retrieve a sonnet
 #==============================================================================
             elif code == M_SET:
+            	print("Setting request received")
             	self.puzzle_key = string(random.randint(0,99))
-            	mysend(from_sock, self.puzzle_key)
+            	print("Requese received, key is set to", self.puzzle_key)
+            	#mysend(from_sock, self.puzzle_key)
             
             elif code == M_GUESS:
                 #a = random.randint(0,99)
-                number = msg[1:].strip()
-                from_name = self.logged_sock2name[from_sock]
-                print(from_name + ' guesses:', number)
-                if int(number) > self.puzzle_key:
-                    back = '0'
-                elif int(number) < self.puzzle_key:
-                    back = '1'
-                elif int(number) == self.puzzle_key:
-                    back = '2'
-                #print('here:\n', back)
+                try:
+                	number = msg[1:].strip()
+                	from_name = self.logged_sock2name[from_sock]
+                	print(from_name + ' guesses:', number)
+                	if int(number) > self.puzzle_key: 
+                		back = '0'
+                	elif int(number) < self.puzzle_key:
+                		back = '1'
+                	elif int(number) == self.puzzle_key:
+                		back = '2'
+                except ValueError:
+                	back = 'Please enter a number. '
                 mysend(from_sock, back)
                 
 #==============================================================================

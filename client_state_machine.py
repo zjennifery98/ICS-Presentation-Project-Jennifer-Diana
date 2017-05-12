@@ -102,13 +102,11 @@ class ClientSM:
                     else:
                         self.out_msg += 'Sonnet ' + poem_idx + ' not found\n\n'
                 
-                elif my_msg[0] == "g":
-                	mysend(self.s, M_SET)
-                	key = myrecv(self.s)
-                	print(key)
+                elif my_msg == "g":
+                	# mysend(self.s, M_SET)
+                	self.state = S_GUESSING
                 	self.out_msg += 'Now there is a random number between 1 and 99! \n'
                 	self.out_msg += 'Take a guess! \n'
-                	self.state = S_GUESSING
 
                 else:
                     self.out_msg += menu
@@ -154,11 +152,11 @@ class ClientSM:
         		mysend(self.s, M_GUESS + my_msg.strip())
         		response = myrecv(self.s)
         		if response == '0':
-        			self.out_msg += "too big"
+        			self.out_msg += "Too big"
         		elif response == '1':
-        			self.out_msg += "too small"                        
+        			self.out_msg += "Too small"                        
         		elif response == '2':
-        			self.out_msg += "yes"
+        			self.out_msg += "Correct answer! Congratulations!"
         			self.state = S_LOGGEDIN
         				#state1 = True
         				
