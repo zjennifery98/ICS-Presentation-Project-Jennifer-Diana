@@ -13,6 +13,7 @@ class ClientSM:
         self.me = ''
         self.out_msg = ''
         self.s = s
+        self.score = 0
 
     def set_state(self, state):
         self.state = state
@@ -30,7 +31,7 @@ class ClientSM:
         msg = M_CONNECT + peer
         mysend(self.s, msg)
         response = myrecv(self.s)
-        if response == (M_CONNECT+'ok'):
+        if response == (M_CONNECT + 'ok'):
             self.peer = peer
             self.out_msg += 'You are connected with '+ self.peer + '\n'
             return (True)
@@ -101,7 +102,21 @@ class ClientSM:
                         self.out_msg += poem + '\n\n'
                     else:
                         self.out_msg += 'Sonnet ' + poem_idx + ' not found\n\n'
-
+                
+                elif my_msg == "g":
+                	# mysend(self.s, M_SET)
+                    self.state = S_GUESSING
+                    self.score = 100
+                    self.out_msg += 'Now there is a random number between 1 and 99! \n'
+                    self.out_msg += 'Take a guess! \n'
+                
+                elif my_msg == "r":
+                    self.out_msg += 'Ranking List \n'
+                    mysend(self.s, M_RANK + str(self.score))
+                    rank = myrecv(self.s)
+                    self.out_msg += rank
+                    self.state = S_LOGGEDIN
+                	# mysend(self.s, M_SET)s
                 else:
                     self.out_msg += menu
                     
@@ -138,6 +153,30 @@ class ClientSM:
             # Display the menu again
             if self.state == S_LOGGEDIN:
                 self.out_msg += menu
+        
+        elif self.state == S_GUESSING:
+        	#state1 = False
+        	#while state1 == False
+            if len(my_msg) > 0:
+                mysend(self.s, M_GUESS + my_msg.strip())
+                response = myrecv(self.s)
+                if self.score > 0:
+                    if response == '0':
+                        self.out_msg += "Too big"
+                        self.score = self.score - 5
+                    elif response == '1':
+                        self.out_msg += "Too small"  
+                        self.score = self.score - 5
+                    elif response == '2':
+                        self.out_msg += "Correct answer! Congratulations! Your score is " + str(self.score) + "\n Press r to check the ranking list."
+                        self.state = S_LOGGEDIN
+        				#state1 = True
+                else:
+                    self.out_msg += "Sorry you lost the game"
+                    self.state = S_LOGGEDIN
+           
+
+        				
 #==============================================================================
 # invalid state                       
 #==============================================================================
