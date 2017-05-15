@@ -13,6 +13,7 @@ class ClientSM:
         self.me = ''
         self.out_msg = ''
         self.s = s
+        self.score = 100
 
     def set_state(self, state):
         self.state = state
@@ -30,7 +31,7 @@ class ClientSM:
         msg = M_CONNECT + peer
         mysend(self.s, msg)
         response = myrecv(self.s)
-        if response == (M_CONNECT+'ok'):
+        if response == (M_CONNECT + 'ok'):
             self.peer = peer
             self.out_msg += 'You are connected with '+ self.peer + '\n'
             return (True)
@@ -101,7 +102,21 @@ class ClientSM:
                         self.out_msg += poem + '\n\n'
                     else:
                         self.out_msg += 'Sonnet ' + poem_idx + ' not found\n\n'
-
+                
+                elif my_msg == "g":
+                	# mysend(self.s, M_SET)
+                    self.state = S_GUESSING
+                    self.score = 100
+                    self.out_msg += 'Now there is a random number between 1 and 99! \n'
+                    self.out_msg += 'Take a guess! \n'
+                
+                elif my_msg == "r":
+                    self.out_msg += 'Ranking List \n'
+                    mysend(self.s, M_RANK + str(self.score))
+                    rank = myrecv(self.s)
+                    self.out_msg += rank
+                    self.state = S_LOGGEDIN
+                	# mysend(self.s, M_SET)s
                 else:
                     self.out_msg += menu
                     
@@ -120,24 +135,59 @@ class ClientSM:
 #==============================================================================
         elif self.state == S_CHATTING:
             if len(my_msg) > 0:     # my stuff going out
-                mysend(self.s, M_EXCHANGE + "[" + self.me + "] " + my_msg)
-                if my_msg == 'bye':
-                    self.disconnect()
+                if my_msg != "play":
+                    mysend(self.s, M_EXCHANGE + "[" + self.me + "] " + my_msg)
+                    if my_msg == 'bye':
+                        self.disconnect()
+                        self.state = S_LOGGEDIN
+                        self.peer = ''
+                else:
+                    self.state = S_PLAY
+                    self.out_msg += "please give your peer a number to guess"
+            
+            if len(peer_msg) > 0: #peer's stuff
+                
+                if peer_code == M_DISCONNECT: # I got bumped out
                     self.state = S_LOGGEDIN
-                    self.peer = ''
-            if len(peer_msg) > 0:    # peer's stuff, coming in
+            
+                if self.state == S_LOGGEDIN: # Display the menu again
+                    self.out_msg += menu
+                
                 if peer_code == M_CONNECT:
                     self.out_msg += "(" + peer_msg + " joined)\n"
                 else:
-                    self.out_msg += peer_msg
+                    if peer_msg == "stop":
+                        self.out_msg += "please guess a number"
+                        self.state = S_GUESSING
+                    else:
+                        self.out_msg += peer_msg
 
-            # I got bumped out
-            if peer_code == M_DISCONNECT:
+        
+        elif self.state == S_GUESSING:
+            if len(my_msg) > 0:
+                mysend(self.s, M_GUESS + my_msg.strip())
+                response = myrecv(self.s)
+                if self.score > 0:
+                    if response == '0':
+                        self.out_msg += "Too big"
+                        self.score = self.score - 5
+                    elif response == '1':
+                        self.out_msg += "Too small"  
+                        self.score = self.score - 5
+                    elif response == '2':
+                        self.out_msg += "Correct answer! Congratulations! Your score is " + str(self.score) + "\n Press r to check the ranking list."
+                        self.state = S_LOGGEDIN
+                else:
+                    self.out_msg += "Sorry you lost the game"
+                    self.state = S_LOGGEDIN
+        
+        elif self.state == S_PLAY:
+            if len(my_msg) > 0:
+                mysend(self.s, M_GUESS_0 + my_msg.strip())
                 self.state = S_LOGGEDIN
+           
 
-            # Display the menu again
-            if self.state == S_LOGGEDIN:
-                self.out_msg += menu
+        				
 #==============================================================================
 # invalid state                       
 #==============================================================================
