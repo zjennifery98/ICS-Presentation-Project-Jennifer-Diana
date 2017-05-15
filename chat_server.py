@@ -4,9 +4,11 @@ import select
 import sys
 import string
 import indexer
+import random
 import pickle as pkl
 from chat_utils import *
 import chat_group as grp
+import guessing_hard as hard
 
 class Server:
     def __init__(self):
@@ -26,6 +28,10 @@ class Server:
         self.sonnet_f = open('AllSonnets.txt.idx', 'rb')
         self.sonnet = pkl.load(self.sonnet_f)
         self.sonnet_f.close()
+        # This one awaits further amendment, since it assumes that for one time there can only exist one puzzle
+        self.puzzle_key = 32
+        self.rank = {}
+        self.l = []
         
     def new_client(self, sock):
         #add to all sockets and to new clients
@@ -127,13 +133,66 @@ class Server:
 #==============================================================================
 #retrieve a sonnet
 #==============================================================================
-            elif code == M_POEM:
-                poem_indx = int(msg[1:])
+            elif code == M_SET:
+            	print("Setting request received")
+            	game_type = msg[1:].strip()
+            	if game_type == '1':
+            		self.puzzle_key = str(random.randint(0,99))
+            		print("Easy game request received, key is set to", self.puzzle_key)
+            		mysend(from_sock, self.puzzle_key)
+            	elif game_type == '2':
+            		number_digits = random.randint(1,5)
+            		digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            		puzzle_key = ''
+            		for i in range(number_digits):
+            			digit = digits[random.randint(0, len(digits)-1)]
+            			digits.remove(digit)
+            			puzzle_key += str(digit)
+            		self.puzzle_key = puzzle_key
+            		print("Hard game request received, key is set to", self.puzzle_key)
+            		# puzzle = hard.Puzzle(int(puzzle_key))
+            		mysend(from_sock, self.puzzle_key)
+            	else:
+            		print("Invalid game type")
+            
+            elif code == M_GUESS:
+                #a = random.randint(0,99)
+                try:
+                	number = msg[1:].strip()
+                	from_name = self.logged_sock2name[from_sock]
+                	print(from_name + ' guesses:', number)
+                	if int(number) > int(self.puzzle_key): 
+                		back = '0'
+                	elif int(number) < int(self.puzzle_key):
+                		back = '1'
+                	elif int(number) == int(self.puzzle_key):
+                		back = '2'
+                except ValueError:
+                	back = 'Please enter a number. '
+                mysend(from_sock, back)
+            
+            elif code == M_RANK:
+                info = msg[1:]
                 from_name = self.logged_sock2name[from_sock]
-                print(from_name + ' asks for ', poem_indx)
-                poem = self.sonnet.get_sect(poem_indx)
-                print('here:\n', poem)
-                mysend(from_sock, M_POEM + poem)
+                print(from_name)
+                if info in self.rank:
+                    self.rank[info].append(from_name)
+                else:
+                    self.rank[info] = []
+                    self.rank[info].append(from_name)
+                print(self.rank)
+                information = ""
+                print(information)
+                for i in self.rank:
+                    information += i
+                    information += ":"
+                    for j in self.rank[i]:
+                        information += j
+                        information += " "
+                    information += "\n"
+                mysend(from_sock, information)
+          
+                
 #==============================================================================
 #time
 #==============================================================================
@@ -174,6 +233,7 @@ class Server:
 #==============================================================================
 # main loop, loops *forever*
 #==============================================================================
+
     def run(self):
         print ('starting server...')
         while(1):
